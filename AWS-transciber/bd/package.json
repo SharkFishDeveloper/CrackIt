@@ -1,0 +1,20 @@
+{
+  "name": "bd",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node ./index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-textract": "^3.927.0",
+    "@aws-sdk/client-transcribe-streaming": "^3.922.0",
+    "dotenv": "^17.2.3",
+    "openai": "^6.8.1",
+    "ws": "^8.18.3"
+  }
+}
