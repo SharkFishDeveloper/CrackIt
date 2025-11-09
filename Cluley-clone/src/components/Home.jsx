@@ -360,54 +360,61 @@ export default function Home() {
     try { wsRef.current?.send(JSON.stringify({ type: "resume" })); } catch {}
   };
 
-  const stop = async (keepWS = false) => {
-    try {
-      if (processorRef.current) {
-        try { processorRef.current.disconnect(); } catch {}
-        processorRef.current.onaudioprocess = null;
-        processorRef.current = null;
-      }
-      if (mixSourceRef.current) {
-        try { mixSourceRef.current.disconnect(); } catch {}
-        mixSourceRef.current = null;
-      }
-      if (sourceRef.current) {
-        try { sourceRef.current.disconnect(); } catch {}
-        sourceRef.current = null;
-      }
-      if (micGainRef.current) {
-        try { micGainRef.current.disconnect(); } catch {}
-        micGainRef.current = null;
-      }
-      if (sysGainRef.current) {
-        try { sysGainRef.current.disconnect(); } catch {}
-        sysGainRef.current = null;
-      }
-      if (mediaRef.current) {
-        mediaRef.current.getTracks().forEach((t) => t.stop());
-        mediaRef.current = null;
-      }
-      if (sysStreamRef.current) {
-        sysStreamRef.current.getTracks().forEach((t) => t.stop());
-        sysStreamRef.current = null;
-      }
-      if (audioCtxRef.current) {
-        try { await audioCtxRef.current.close(); } catch {}
-        audioCtxRef.current = null;
-      }
-    } finally {
-      isPausedRef.current = false;
+const stop = async () => {
+  // 1) Stop sending audio + disconnect audio graph
+  try {
+    if (processorRef.current) {
+      try { processorRef.current.onaudioprocess = null } catch {}
+      try { processorRef.current.disconnect() } catch {}
+      processorRef.current = null;
     }
-    if (!keepWS) {
-      const ws = wsRef.current;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        try { ws.send(JSON.stringify({ type: "stop" })); } catch {}
-        try { ws.close(); } catch {}
-      }
-      wsRef.current = null;
-      setStatus("idle");
+    if (mixSourceRef.current) {
+      try { mixSourceRef.current.disconnect() } catch {}
+      mixSourceRef.current = null;
     }
-  };
+    if (sourceRef.current) {
+      try { sourceRef.current.disconnect() } catch {}
+      sourceRef.current = null;
+    }
+    if (micGainRef.current) {
+      try { micGainRef.current.disconnect() } catch {}
+      micGainRef.current = null;
+    }
+    if (sysGainRef.current) {
+      try { sysGainRef.current.disconnect() } catch {}
+      sysGainRef.current = null;
+    }
+    if (mediaRef.current) {
+      try { mediaRef.current.getTracks().forEach((t) => t.stop()) } catch {}
+      mediaRef.current = null;
+    }
+    if (sysStreamRef.current) {
+      try { sysStreamRef.current.getTracks().forEach((t) => t.stop()) } catch {}
+      sysStreamRef.current = null;
+    }
+    if (audioCtxRef.current) {
+      try { await audioCtxRef.current.close() } catch {}
+      audioCtxRef.current = null;
+    }
+  } finally {
+    isPausedRef.current = false;
+  }
+
+  // 2) Fully close WebSocket + remove handlers so it doesn't reconnect / echo
+  const ws = wsRef.current;
+  if (ws) {
+    try { ws.send(JSON.stringify({ type: "stop" })) } catch {}
+    try { ws.onopen = null } catch {}
+    try { ws.onmessage = null } catch {}
+    try { ws.onclose = null } catch {}
+    try { ws.onerror = null } catch {}
+    try { ws.close() } catch {}
+  }
+  wsRef.current = null;
+
+  // 3) Reset UI state
+  setStatus("idle");
+};
 
   const askAI = () => {
     const text = lastNWords(`${finalText} ${partialText}`, 100);
