@@ -66,7 +66,9 @@ async function getSystemAudioViaDesktopCapturer() {
     }
     // auto-cleanup on stop sharing
     a.onended = () => {
-      try { sys.getTracks().forEach((t) => t.stop()); } catch {}
+      try { sys.getTracks().forEach((t) => t.stop()); } catch {
+//
+}
     };
     return sys;
   } catch (e) {
@@ -88,7 +90,9 @@ async function getSystemAudioViaDisplayMedia() {
   }
   // Clean up when user stops sharing
   a.onended = () => {
-    try { sys.getTracks().forEach((t) => t.stop()); } catch {}
+    try { sys.getTracks().forEach((t) => t.stop()); } catch {
+//
+}
   };
   // Drop the video track; keep audio only
   sys.getVideoTracks().forEach((t) => sys.removeTrack(t));
@@ -261,7 +265,9 @@ export default function Home() {
             t.onended = () => {
               console.warn("System-audio track ended");
               // Don’t kill mic if user just stopped sharing system audio:
-              try { sys.getTracks().forEach((x) => x.stop()); } catch {}
+              try { sys.getTracks().forEach((x) => x.stop()); } catch {
+//
+}
               sysStreamRef.current = null;
               // keep running on mic-only
             };
@@ -274,7 +280,9 @@ export default function Home() {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       const audioCtx = new AudioCtx();
       audioCtxRef.current = audioCtx;
-      try { await audioCtx.resume(); } catch {}
+      try { await audioCtx.resume(); } catch {
+//
+}
 
       const dest = audioCtx.createMediaStreamDestination();
       mixedStreamRef.current = dest.stream;
@@ -308,7 +316,9 @@ export default function Home() {
       try {
         // Ensure the node processes; some stacks require a sink
         processor.connect(audioCtx.destination);
-      } catch {}
+      } catch {
+//
+}
 
       processor.onaudioprocess = (evt) => {
         if (isPausedRef.current) return;
@@ -329,13 +339,17 @@ export default function Home() {
         const pcm16 = floatTo16BitPCM(resampled);
         try {
           sock.send(pcm16.buffer);
-        } catch {}
+        } catch {
+//
+}
       };
 
       setStatus("connected");
     } catch (e) {
       console.error("Capture setup error:", e);
-      try { wsRef.current?.close(); } catch {}
+      try { wsRef.current?.close(); } catch {
+//
+}
       wsRef.current = null;
       setStatus("error");
     }
@@ -345,55 +359,81 @@ export default function Home() {
     if (status !== "connected") return;
     isPausedRef.current = true;
     setStatus("paused");
-    try { wsRef.current?.send(JSON.stringify({ type: "pause" })); } catch {}
+    try { wsRef.current?.send(JSON.stringify({ type: "pause" })); } catch {
+//
+}
     try {
       if (audioCtxRef.current?.state === "running") await audioCtxRef.current.suspend();
-    } catch {}
+    } catch {
+//
+}
   };
   const resume = async () => {
     if (status !== "paused") return;
     try {
       if (audioCtxRef.current?.state === "suspended") await audioCtxRef.current.resume();
-    } catch {}
+    } catch {
+//
+}
     isPausedRef.current = false;
     setStatus("connected");
-    try { wsRef.current?.send(JSON.stringify({ type: "resume" })); } catch {}
+    try { wsRef.current?.send(JSON.stringify({ type: "resume" })); } catch {
+//
+}
   };
 
 const stop = async () => {
   // 1) Stop sending audio + disconnect audio graph
   try {
     if (processorRef.current) {
-      try { processorRef.current.onaudioprocess = null } catch {}
-      try { processorRef.current.disconnect() } catch {}
+      try { processorRef.current.onaudioprocess = null } catch {
+//
+}
+      try { processorRef.current.disconnect() } catch {
+//
+}
       processorRef.current = null;
     }
     if (mixSourceRef.current) {
-      try { mixSourceRef.current.disconnect() } catch {}
+      try { mixSourceRef.current.disconnect() } catch {
+//
+}
       mixSourceRef.current = null;
     }
     if (sourceRef.current) {
-      try { sourceRef.current.disconnect() } catch {}
+      try { sourceRef.current.disconnect() } catch {
+//
+}
       sourceRef.current = null;
     }
     if (micGainRef.current) {
-      try { micGainRef.current.disconnect() } catch {}
+      try { micGainRef.current.disconnect() } catch {
+//
+}
       micGainRef.current = null;
     }
     if (sysGainRef.current) {
-      try { sysGainRef.current.disconnect() } catch {}
+      try { sysGainRef.current.disconnect() } catch {
+//
+}
       sysGainRef.current = null;
     }
     if (mediaRef.current) {
-      try { mediaRef.current.getTracks().forEach((t) => t.stop()) } catch {}
+      try { mediaRef.current.getTracks().forEach((t) => t.stop()) } catch {
+//
+}
       mediaRef.current = null;
     }
     if (sysStreamRef.current) {
-      try { sysStreamRef.current.getTracks().forEach((t) => t.stop()) } catch {}
+      try { sysStreamRef.current.getTracks().forEach((t) => t.stop()) } catch {
+//
+}
       sysStreamRef.current = null;
     }
     if (audioCtxRef.current) {
-      try { await audioCtxRef.current.close() } catch {}
+      try { await audioCtxRef.current.close() } catch {
+//
+}
       audioCtxRef.current = null;
     }
   } finally {
@@ -403,12 +443,24 @@ const stop = async () => {
   // 2) Fully close WebSocket + remove handlers so it doesn't reconnect / echo
   const ws = wsRef.current;
   if (ws) {
-    try { ws.send(JSON.stringify({ type: "stop" })) } catch {}
-    try { ws.onopen = null } catch {}
-    try { ws.onmessage = null } catch {}
-    try { ws.onclose = null } catch {}
-    try { ws.onerror = null } catch {}
-    try { ws.close() } catch {}
+    try { ws.send(JSON.stringify({ type: "stop" })) } catch {
+//
+}
+    try { ws.onopen = null } catch {
+//
+}
+    try { ws.onmessage = null } catch {
+//
+}
+    try { ws.onclose = null } catch {
+//
+}
+    try { ws.onerror = null } catch {
+//
+}
+    try { ws.close() } catch {
+//
+}
   }
   wsRef.current = null;
 
@@ -479,7 +531,9 @@ const stop = async () => {
   const cancelOcr = () => {
     if (!ocrBusy) return;
     ocrCanceledRef.current = true;
-    try { ocrAbortRef.current?.abort(); } catch {}
+    try { ocrAbortRef.current?.abort(); } catch {
+//
+}
     if (ocrTimerRef.current) {
       clearTimeout(ocrTimerRef.current);
       ocrTimerRef.current = null;
@@ -503,7 +557,9 @@ const stop = async () => {
 
     ocrTimerRef.current = setTimeout(() => {
       if (!ocrCanceledRef.current) {
-        try { controller.abort(); } catch {}
+        try { controller.abort(); } catch {
+//
+}
       }
     }, 25000);
 
@@ -568,7 +624,9 @@ const stop = async () => {
           const W = Math.max(200, Math.floor(newW));
           const H = Math.max(100, Math.floor(newH));
           window.electronAPI?.resizeWindow?.(W, H);
-        } catch {}
+        } catch {
+//
+}
       });
     }
   };

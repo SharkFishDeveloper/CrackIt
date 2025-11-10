@@ -1,0 +1,1 @@
+Run in powershell => & "C:\Program Files\Git\bin\bash.exe" -lc "cd '$PWD'; ./run.sh"
